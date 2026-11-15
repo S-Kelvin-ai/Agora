@@ -40,6 +40,11 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import com.newoether.agora.R
 import com.newoether.agora.data.forDisplay
 import com.newoether.agora.data.replaceCustomProviderIdsForDisplay
@@ -93,6 +98,33 @@ internal fun contextCompactPillPresentation(status: MessageStatus): ContextCompa
         MessageStatus.STOPPED -> ContextCompactPillPresentation.STOPPED
         MessageStatus.SUCCESS -> ContextCompactPillPresentation.SUCCESS
     }
+
+private val timestampFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
+@Composable
+private fun MessageTimestamp(
+    timestamp: Long,
+    modifier: Modifier = Modifier,
+) {
+    val formatted = remember(timestamp) {
+        try {
+            val instant = Instant.ofEpochMilli(timestamp)
+            val local = instant.atZone(ZoneId.systemDefault())
+            local.format(timestampFormatter)
+        } catch (_: Exception) {
+            ""
+        }
+    }
+    if (formatted.isNotEmpty()) {
+        Text(
+            text = formatted,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            modifier = modifier,
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -398,6 +430,10 @@ internal fun MessageItem(
                         onShowDelete = onShowDelete,
                         searchHighlight = searchHighlight,
                     )
+                    MessageTimestamp(
+                        timestamp = message.timestamp,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
                 } else {
                     AssistantMessageContent(
                         message = displayMessage,
@@ -440,6 +476,10 @@ internal fun MessageItem(
                         onLayoutMutationStarted = onLayoutMutationStarted,
                         onLayoutMutationSettled = onLayoutMutationSettled,
                         setThoughtBlockHeight = {},
+                    )
+                    MessageTimestamp(
+                        timestamp = message.timestamp,
+                        modifier = Modifier.padding(top = 2.dp),
                     )
                 }
             }
